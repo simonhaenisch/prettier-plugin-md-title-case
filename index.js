@@ -5,70 +5,53 @@ import { parsers } from 'prettier/plugins/markdown';
 import { titleCase } from 'title-case';
 
 /**
- * Set `convertHeadingsToTitleCase` as the given parser's `preprocess` hook, or merge it with the existing one.
- *
- * @param {import('prettier').Parser} parser prettier parser
- */
-const withTitleCasePreprocess = (parser) => {
-	return {
-		...parser,
-		/**
-		 * @param {string} code
-		 * @param {import('prettier').ParserOptions} options
-		 */
-		preprocess: (code, options) =>
-			convertHeadingsToTitleCase(
-				parser.preprocess ? parser.preprocess(code, options) : code,
-				options,
-			),
-	};
-};
-
-/**
- * Convert all headings to title case using the `title-case` package.
+ * Call the given parser to get the AST, then convert the text values of all heading tokens to title-case.
  *
  * @param {string} code
  * @param {import('prettier').ParserOptions} options
+ * @param {import('prettier').Parser} parser
  */
-const convertHeadingsToTitleCase = (code, options) => {
-	try {
-		const titleCaseOptions = options.titleCase
-			? JSON.parse(options.titleCase)
-			: undefined;
+async function parseWithHeadingsToTitleCase(code, options, parser) {
+	const titleCaseOptions = options.titleCase
+		? JSON.parse(options.titleCase)
+		: undefined;
 
-		return code
-			.split('\n')
-			.map((line) => {
-				if (!line.startsWith('#')) {
-					return line;
-				}
+	const ast = await parser.parse(code, options);
 
-				const content = line.replace(/^#+/, '').trim();
+	const headings = ast.children.filter((token) => token.type === 'heading');
 
-				const inlineCodeMatches = Array.from(content.matchAll(/`.+?`/g));
+	for (const heading of headings) {
+		const textTokens = heading.children.filter(
+			(token) => token.type === 'text',
+		);
 
-				let newContent = titleCase(content, titleCaseOptions);
+		const text = textTokens.map((token) => token.value).join('');
 
-				for (const match of inlineCodeMatches) {
-					const [inlineCode] = match;
+		let converted = titleCase(text, titleCaseOptions);
 
-					newContent =
-						newContent.slice(0, match.index) +
-						inlineCode +
-						newContent.slice(match.index + inlineCode.length);
-				}
-
-				return line.replace(content, newContent);
-			})
-			.join('\n');
-	} catch (error) {
-		if (process.env.DEBUG) {
-			console.error(error);
-		}
-
-		return code;
+		textTokens.forEach((token) => {
+			token.value = converted.slice(0, token.value.length);
+			converted = converted.slice(token.value.length);
+		});
 	}
-};
+
+	return ast;
+}
+
+/**
+ * Patch the `parse` method of the given parser to use `parseWithHeadingsToTitleCase` instead which wraps the given parser.
+ *
+ * @param {import('prettier').Parser} parser
+ *
+ * @returns {import('prettier').Parser}
+ */
+function withPatchedParse(parser) {
+	return {
+		...parser,
+		parse: (code, options) =>
+			parseWithHeadingsToTitleCase(code, options, parser),
+	};
+}
 
 /**
  * @type {import('prettier').Plugin}
@@ -84,6 +67,6 @@ export default {
 		},
 	},
 	parsers: {
-		markdown: withTitleCasePreprocess(parsers.markdown),
+		markdown: withPatchedParse(parsers.markdown),
 	},
 };

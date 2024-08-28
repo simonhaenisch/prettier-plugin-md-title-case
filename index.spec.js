@@ -63,3 +63,35 @@ it('passes title-case options from the prettier config', async (t) => {
 
 	t.is(formattedCode, '# Some sentence - Only affects the first word!\n');
 });
+
+const fullExample = `
+# foo bar \`inline-code\` baz
+
+lorem ipsum
+
+\`\`\`yaml
+# some yaml comment
+foo: bar
+\`\`\`
+
+## heading two
+`.trimStart();
+
+const fullExampleExpected = `
+# Foo Bar \`inline-code\` Baz
+
+lorem ipsum
+
+\`\`\`yaml
+# some yaml comment
+foo: bar
+\`\`\`
+
+## Heading Two
+`.trimStart();
+
+it('works with the full example', async (t) => {
+	const formattedCode = await prettify(fullExample);
+
+	t.is(formattedCode, fullExampleExpected);
+});

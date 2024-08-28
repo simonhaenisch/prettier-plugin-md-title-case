@@ -14,7 +14,7 @@ A plugin that makes Prettier convert your markdown headings to title case using 
 
 **Caveat**
 
-This plugin inherits, extends, and then overrides the built-in Prettier parser for `markdown`. This means that it is incompatible with other plugins that do the same; only the last loaded plugin that exports one of those parsers will function.
+This plugin overrides the built-in Prettier parser for `markdown`. This means that it is incompatible with other plugins that do the same; only the last loaded plugin that exports one of those parsers will function.
 
 ## Installation
 
@@ -37,7 +37,7 @@ export default {
 };
 ```
 
-Any line starting with `#` will be considered a heading. Doesn't work for inline-HTML.
+It doesn't support inline HTML headings.
 
 ## Configuration
 
@@ -62,7 +62,7 @@ If it doesn't work, you can try to prefix your `prettier` command with `DEBUG=tr
 
 ## Rationale/Disclaimer
 
-This plugin acts outside of [Prettier's scope](https://prettier.io/docs/en/rationale#what-prettier-is-_not_-concerned-about) because _"Prettier only prints code. It does not transform it."_, and technically converting the case is a code transformation. In my opinion however, Markdown is just markup and not really code, and it doesn't change the AST of the Markdown file (just the contents of some nodes). Therefore the practical benefits outweigh sticking with the philosophy in this case.
+This plugin acts outside of [Prettier's scope](https://prettier.io/docs/en/rationale#what-prettier-is-_not_-concerned-about) because _"Prettier only prints code. It does not transform it."_, and technically converting the case is a code transformation. In my opinion however, Markdown is just markup and not really code, and it doesn't change the AST of the Markdown file (just the content of some text node values). Therefore the practical benefits outweigh sticking with the philosophy in this case.
 
 ## License
 
