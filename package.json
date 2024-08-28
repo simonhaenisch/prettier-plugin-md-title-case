@@ -1,6 +1,6 @@
 {
   "name": "prettier-plugin-md-title-case",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Make Prettier convert your Markdown headings to title-case.",
   "keywords": [
     "prettier",
