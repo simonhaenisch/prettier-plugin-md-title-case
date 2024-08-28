@@ -45,7 +45,20 @@ const convertHeadingsToTitleCase = (code, options) => {
 
 				const content = line.replace(/^#+/, '').trim();
 
-				return line.replace(content, titleCase(content, titleCaseOptions));
+				const inlineCodeMatches = Array.from(content.matchAll(/`.+?`/g));
+
+				let newContent = titleCase(content, titleCaseOptions);
+
+				for (const match of inlineCodeMatches) {
+					const [inlineCode] = match;
+
+					newContent =
+						newContent.slice(0, match.index) +
+						inlineCode +
+						newContent.slice(match.index + inlineCode.length);
+				}
+
+				return line.replace(content, newContent);
 			})
 			.join('\n');
 	} catch (error) {

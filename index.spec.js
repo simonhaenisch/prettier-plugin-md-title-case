@@ -1,6 +1,6 @@
 // @ts-check
 
-import test from 'ava';
+import it from 'ava';
 import * as prettier from 'prettier';
 
 /**
@@ -14,7 +14,7 @@ const prettify = async (code, options) =>
 		...options,
 	});
 
-test('converts headings to title case', async (t) => {
+it('converts headings to title case', async (t) => {
 	const formattedCode = await prettify(
 		'# test One\n\nlorem ipsum\n\n## test two',
 	);
@@ -22,13 +22,38 @@ test('converts headings to title case', async (t) => {
 	t.is(formattedCode, '# Test One\n\nlorem ipsum\n\n## Test Two\n');
 });
 
-test('ignores additional # chars in the heading', async (t) => {
+it('ignores additional # chars in the heading', async (t) => {
 	const formattedCode = await prettify('### A heading with a # in it');
 
 	t.is(formattedCode, '### A Heading with a # in It\n');
 });
 
-test('passes title-case options from the prettier config', async (t) => {
+it('does not convert inline code', async (t) => {
+	const formattedCode = await prettify('# heading with `inline-code` in it');
+
+	t.is(formattedCode, '# Heading with `inline-code` in It\n');
+});
+
+it('does not convert multiple inline code fragments', async (t) => {
+	const formattedCode = await prettify(
+		'# heading with `inline-code` but `twice`',
+	);
+
+	t.is(formattedCode, '# Heading with `inline-code` but `twice`\n');
+});
+
+it('leaves inline code intact when the same code is used multiple times', async (t) => {
+	const formattedCode = await prettify(
+		'# heading with same `inline-code` twice `inline-code`',
+	);
+
+	t.is(
+		formattedCode,
+		'# Heading with Same `inline-code` Twice `inline-code`\n',
+	);
+});
+
+it('passes title-case options from the prettier config', async (t) => {
 	const formattedCode = await prettify(
 		'# some sentence - Only affects the first word!',
 		{
