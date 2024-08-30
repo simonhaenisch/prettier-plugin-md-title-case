@@ -18,6 +18,7 @@ async function parseWithHeadingsToTitleCase(code, options, parser) {
 
 	const ast = await parser.parse(code, options);
 
+	// assuming all heading tokens are children of root
 	const headings = ast.children.filter((token) => token.type === 'heading');
 
 	for (const heading of headings) {
